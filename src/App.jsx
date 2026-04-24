@@ -1,5 +1,6 @@
 import { useState } from "react";
 import './index.css';
+import ImagesToPdf from './components/ImagesToPdf'
 
 function App() {
   const [activeTab, setActiveTab] = useState("imageTOpdf");
@@ -8,7 +9,7 @@ function App() {
     <div className="app">
 
       {/* Tab Buttons */}
-      <div className="tab">
+      <div className="tabs">
         <button
           className={activeTab === 'imageTOpdf' ? 'tab active' : 'tab'}
           onClick={() => setActiveTab("imageTOpdf")}
@@ -31,12 +32,7 @@ function App() {
 
       {/* Tab Content */}
       <div className="tab-content">
-        {activeTab === "imageTOpdf" && (
-          <div className="tab-page">
-            <h2>Image to PDF</h2>
-            <p>Convert your images to PDF format.</p>
-          </div>
-        )}
+        {activeTab === "imageTOpdf" && <ImagesToPdf />}
         {activeTab === "pdfTOimage" && (
           <div className="tab-page">
             <h2>PDF to Image</h2>
