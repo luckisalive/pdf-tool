@@ -1,125 +1,130 @@
 import { useState } from "react"
 
 function PdfToImages() {
-  const [pages, setPages]         = useState([])
-  const [status, setStatus]       = useState("")
-  const [statusType, setStatusType] = useState("")
-  const [_loading, setLoading]     = useState(false)
-  const [dragOver, setDragOver]   = useState(false)
+    const [pages, setPages] = useState([])
+    const [status, setStatus] = useState("")
+    const [_loading, setLoading] = useState(false)
+    const [statusType, setStatusType] = useState("")
+    const [dragOver, setDragOver] = useState(false)
 
-  async function handlePdf(file) {
-    if (!file || file.type !== "application/pdf") return
-    setPages([])
-    setStatus("Loading PDF…")
-    setStatusType("loading")
-    setLoading(true)
+    async function handlePdf(file) {
+        if (!file || file.type !== "application/pdf") return
 
-    try {
-      const pdfjsLib = await import('https://unpkg.com/pdfjs-dist@5.6.205/build/pdf.mjs')
-      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@5.6.205/build/pdf.worker.min.mjs`
+        setPages([])
+        setStatus("Processing PDF...")
+        setStatusType("loading")
+        setLoading(true)
 
-      const arrayBuffer = await file.arrayBuffer()
-      const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+        try {
+            const pdfjsLib = await import('https://unpkg.com/pdfjs-dist@5.6.205/build/pdf.mjs')
+            pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@5.6.205/build/pdf.worker.min.mjs`
+            const arrayBuffer = await file.arrayBuffer()
+            const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
 
-      setStatus(`Rendering ${pdfDoc.numPages} page${pdfDoc.numPages !== 1 ? "s" : ""}…`)
+            setStatus(`Extracting ${pdfDoc.numPages} pages...`)
 
-      const rendered = []
-      for (let i = 1; i <= pdfDoc.numPages; i++) {
-        const page     = await pdfDoc.getPage(i)
-        const viewport = page.getViewport({ scale: 2 })
-        const canvas   = document.createElement("canvas")
-        canvas.width   = viewport.width
-        canvas.height  = viewport.height
-        await page.render({ canvasContext: canvas.getContext("2d"), viewport }).promise
-        rendered.push(canvas.toDataURL("image/png"))
-        setStatus(`Rendering page ${i} / ${pdfDoc.numPages}…`)
-      }
+            const renderedPages = []
 
-      setPages(rendered)
-      setStatus(`✓ ${rendered.length} page${rendered.length !== 1 ? "s" : ""} extracted`)
-      setStatusType("success")
-    } catch (err) {
-      setStatus("Error: " + err.message)
-      setStatusType("error")
+            for (let i = 1; i <= pdfDoc.numPages; i++) {
+                const page = await pdfDoc.getPage(i)
+                const viewport = page.getViewport({ scale: 2 })
+                const canvas = document.createElement("canvas")
+                canvas.width = viewport.width
+                canvas.height = viewport.height
+
+                await page.render({ 
+                    canvasContext: canvas.getContext("2d"), viewport }).promise
+
+                renderedPages.push(canvas.toDataURL("image/png"))
+            }
+
+            setPages(renderedPages)
+            setStatus(`Extracted ${renderedPages.length} of ${pdfDoc.numPages} pages...`)
+
+
+        } catch (error) {
+            setStatus("Error: " + error.message)
+            setStatusType("error")
+        }
+
+        setLoading(false)
     }
-    setLoading(false)
-  }
+    
+    function onDrop(e) {
+        e.preventDefault()
+        setDragOver(false)
+        const file = e.dataTransfer.files[0]
+        if (file) handlePdf(file)
+    }
 
-  function onDrop(e) {
-    e.preventDefault()
-    setDragOver(false)
-    const file = e.dataTransfer.files[0]
-    if (file) handlePdf(file)
-  }
+    function downloadPage(src, index) {
+        const a    = document.createElement("a")
+        a.href     = src
+        a.download = `page-${index + 1}.png`
+        a.click()
+    }
 
-  function downloadPage(src, index) {
-    const a    = document.createElement("a")
-    a.href     = src
-    a.download = `page-${index + 1}.png`
-    a.click()
-  }
+    function downloadAll() {
+        pages.forEach((src, i) => downloadPage(src, i))
+    }
 
-  function downloadAll() {
-    pages.forEach((src, i) => downloadPage(src, i))
-  }
+    return (
+        <div>
+            <h2 className="section-title">PDF → Images</h2>
+            <p className="subtitle">Each page becomes a high-resolution PNG you can download.</p>
 
-  return (
-    <div>
-      <h2 className="section-title">PDF → Images</h2>
-      <p className="subtitle">Each page becomes a high-resolution PNG you can download.</p>
+        <div
+            className={`file-drop-area${dragOver ? " drag-over" : ""}`}
+            onClick={() => document.getElementById("pdfInput").click()}
+            onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+            onDragLeave={() => setDragOver(false)}
+            onDrop={onDrop}
+        >
+            <span className="drop-icon">📄</span>
+            <span className="drop-label">Drop a PDF here</span>
+            <span className="drop-hint">or click to browse</span>
+            <input
+                id="pdfInput"
+                type="file"
+                accept="application/pdf"
+                style={{ display: "none" }}
+                onChange={(e) => handlePdf(e.target.files[0])}
+            />
+        </div>
 
-      <div
-        className={`file-drop-area${dragOver ? " drag-over" : ""}`}
-        onClick={() => document.getElementById("pdfInput").click()}
-        onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
-        onDragLeave={() => setDragOver(false)}
-        onDrop={onDrop}
-      >
-        <span className="drop-icon">📄</span>
-        <span className="drop-label">Drop a PDF here</span>
-        <span className="drop-hint">or click to browse</span>
-        <input
-          id="pdfInput"
-          type="file"
-          accept="application/pdf"
-          style={{ display: "none" }}
-          onChange={(e) => handlePdf(e.target.files[0])}
-        />
-      </div>
+        {status && (
+            <p className={`status ${statusType}`} style={{ marginBottom: "16px" }}>
+                {statusType === "loading" && <span className="spinner" />}
+                {status}
+            </p>
+        )}
 
-      {status && (
-        <p className={`status ${statusType}`} style={{ marginBottom: "16px" }}>
-          {statusType === "loading" && <span className="spinner" />}
-          {status}
-        </p>
-      )}
-
-      {pages.length > 0 && (
-        <>
-          <div className="actions">
-            <button className="convert-btn" onClick={downloadAll}>↓ Download all pages</button>
-          </div>
-          <p className="drag-hint" style={{ marginBottom: "12px" }}>
-            Click any page to download it individually
-          </p>
-          <div className="preview-container">
-            {pages.map((src, index) => (
-              <div
-                key={index}
-                className="img-card"
-                onClick={() => downloadPage(src, index)}
-                style={{ cursor: "pointer" }}
-                title={`Download page ${index + 1}`}
-              >
-                <img src={src} alt={`Page ${index + 1}`} />
-                <span className="page-num">{index + 1}</span>
-              </div>
-            ))}
-          </div>
-        </>
-      )}
-    </div>
-  )
+        {pages.length > 0 && (
+            <>
+                <div className="actions">
+                    <button className="convert-btn" onClick={downloadAll}>↓ Download all pages</button>
+                </div>
+                <p className="drag-hint" style={{ marginBottom: "12px" }}>
+                    Click any page to download it individually
+                </p>
+                <div className="preview-container">
+                    {pages.map((src, index) => (
+                        <div
+                            key={index}
+                            className="img-card"
+                            onClick={() => downloadPage(src, index)}
+                            style={{ cursor: "pointer" }}
+                            title={`Download page ${index + 1}`}
+                        >
+                            <img src={src} alt={`Page ${index + 1}`} />
+                            <span className="page-num">{index + 1}</span>
+                        </div>
+                    ))}
+                </div>
+            </>
+        )}
+        </div>
+    )
 }
 
 export default PdfToImages
