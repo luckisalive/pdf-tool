@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react'
 import { PDFDocument } from 'pdf-lib'
 
+const MAX_FRAMES = 100 // Limit to 100 pages per PDF
+
 function ScanToPdf() {
   const [frames, setFrames]         = useState([])
   const [status, setStatus]         = useState('')
@@ -12,17 +14,31 @@ function ScanToPdf() {
 
   useEffect(() => () => stopCamera(), [])
 
+  function teardownStream() {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(t => t.stop())
+      streamRef.current = null
+    }
+  }
+  
   async function startCamera() {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({
         video: { facingMode: 'environment' }
       })
-      streamRef.current       = stream
+      streamRef.current = stream
+
+      if (!videoRef.current) {
+        teardownStream()
+        return
+      }
+
       videoRef.current.srcObject = stream
       setCameraActive(true)
       setStatus('')
       setStatusType('')
     } catch (err) {
+      teardownStream()
       setStatus('Camera error: ' + err.message)
       setStatusType('error')
     }
@@ -37,6 +53,12 @@ function ScanToPdf() {
   }
 
   function captureFrame() {
+    if (frames.length >= MAX_FRAMES) {
+      setStatus(`Maximum of ${MAX_FRAMES} pages reached.`)
+      setStatusType('error')
+      return
+    }
+
     const video  = videoRef.current
     const canvas = document.createElement('canvas')
     canvas.width  = video.videoWidth
@@ -58,6 +80,7 @@ function ScanToPdf() {
   async function convertToPdf() {
     setStatus('Building PDF…')
     setStatusType('loading')
+    let url = null
     try {
       const pdfDoc = await PDFDocument.create()
       for (const dataUrl of frames) {
@@ -69,17 +92,18 @@ function ScanToPdf() {
       }
       const pdfBytes = await pdfDoc.save()
       const blob     = new Blob([pdfBytes], { type: 'application/pdf' })
-      const url      = URL.createObjectURL(blob)
-      const a        = document.createElement('a')
-      a.href         = url
-      a.download     = 'scan.pdf'
+      url = URL.createObjectURL(blob)
+      const a = document.createElement('a')
+      a.href = url
+      a.download = 'scan.pdf'
       a.click()
-      URL.revokeObjectURL(url)
       setStatus(`✓ ${frames.length} page${frames.length !== 1 ? 's' : ''} saved as PDF`)
       setStatusType('success')
     } catch (err) {
       setStatus('Error: ' + err.message)
       setStatusType('error')
+    } finally {
+      if (url) URL.revokeObjectURL(url)
     }
   }
 

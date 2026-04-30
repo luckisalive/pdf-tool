@@ -1,4 +1,11 @@
 import { useState } from "react"
+import * as pdfjsLib from "pdfjs-dist"
+import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url"
+
+pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl
+
+const MAX_FILE_SIZE = 100 // 100MB
+const MAX_PAGES = 100 // 100 pages
 
 function PdfToImages() {
   const [pages, setPages]         = useState([])
@@ -8,18 +15,34 @@ function PdfToImages() {
   const [dragOver, setDragOver]   = useState(false)
 
   async function handlePdf(file) {
-    if (!file || file.type !== "application/pdf") return
+    if (!file) return
+    if (file.type !== "application/pdf") {
+      setStatus("Please select a valid PDF file.")
+      setStatusType("error")
+      return
+    }
+
+    if (file.size > MAX_FILE_SIZE * 1024 * 1024) {
+      setStatus(`File too large. Please select a PDF under ${MAX_FILE_SIZE} MB.`)
+      setStatusType("error")
+      return
+    }
+    
     setPages([])
     setStatus("Loading PDF…")
     setStatusType("loading")
     setLoading(true)
 
     try {
-      const pdfjsLib = await import('https://unpkg.com/pdfjs-dist@5.6.205/build/pdf.mjs')
-      pdfjsLib.GlobalWorkerOptions.workerSrc = `https://unpkg.com/pdfjs-dist@5.6.205/build/pdf.worker.min.mjs`
-
       const arrayBuffer = await file.arrayBuffer()
       const pdfDoc = await pdfjsLib.getDocument({ data: arrayBuffer }).promise
+
+      if (pdfDoc.numPages > MAX_PAGES) {
+        setStatus(`PDF has ${pdfDoc.numPages} pages, which exceeds the limit of ${MAX_PAGES}. Please select a smaller PDF.`)
+        setStatusType("error")
+        setLoading(false)
+        return
+      }
 
       setStatus(`Rendering ${pdfDoc.numPages} page${pdfDoc.numPages !== 1 ? "s" : ""}…`)
 
