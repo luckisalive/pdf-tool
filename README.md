@@ -91,6 +91,7 @@ src/
 └── main.jsx
 .gitignore
 README.md
+LICENSE.md
 eslint.config.js
 index.html
 package-lock.json
