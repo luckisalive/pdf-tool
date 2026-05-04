@@ -44,7 +44,7 @@ function ImagesToPdf() {
         }
  
         for (const file of toProcess) {
-            if (!validTypes.has(file.type)) {
+            if (!validTypes.includes(file.type)) {
                 setStatus(`"${file.name}" is not an accepted format. Use JPG, PNG, or WebP.`)
                 setStatusType("error")
                 continue
@@ -197,6 +197,13 @@ function ImagesToPdf() {
                     style={{ display: "none" }}
                 />
             </div>
+            
+            {status && (
+                <p className={`status ${statusType}`}>
+                    {statusType === "loading" && <span className="spinner" />}
+                    {status}
+                </p>
+            )}
 
             {/*Image Previews*/}
             {images.length > 0 && (
@@ -223,13 +230,6 @@ function ImagesToPdf() {
                     <button className="convert-btn" onClick={convertToPdf}>↓ Convert to PDF</button>
                     <button className="ghost-btn" onClick={clearAll}>Clear all</button>
                 </div>
- 
-                {status && (
-                    <p className={`status ${statusType}`}>
-                        {statusType === "loading" && <span className="spinner" />}
-                        {status}
-                    </p>
-                )}
                 </>
             )}
         </div>
