@@ -18,7 +18,7 @@ PDF4YOU currently offers three tools, accessible via a tab-based interface:
 | Tool | Description |
 |------|-------------|
 | **Image → PDF** | Combine multiple images (JPG, PNG, WEBP) into a single PDF. Drag to reorder pages before converting. |
-| **PDF → Images** | Extract every page of a PDF as a high-resolution PNG. Download individually or all at once. |
+| **PDF → Images** | Extract every page of a PDF as a high-resolution PNG. Download individually or all at once in a zip file. |
 | **Scan → PDF** | Use your device camera to scan physical documents page by page and export as a PDF. |
 
 All processing happens **in the browser** — your files are never sent to any server.
@@ -28,7 +28,7 @@ All processing happens **in the browser** — your files are never sent to any s
 ## NOTE-
 
 There is upload limit & file_count limit to prevent crashing of browser or denial of service on the client.
-- PdfToImages: 100 MB PDF limit and 100 pages max.
+- PdfToImages: 100 MB per PDF limit and 200 pages max.
 - ImagesToPdf: 20 MB per image and 100 images max.
 - ScanToPdf: 100 max frame count(images).
 >You can change limits by running the build locally.
