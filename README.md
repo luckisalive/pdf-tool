@@ -2,12 +2,12 @@
 
 > **Local · Private · No uploads** — a fully client-side PDF toolkit that runs entirely in your browser.
 
-![100% client-side](https://img.shields.io/badge/processing-100%25%20client--side-e8ff47?style=flat-square&labelColor=111111)
-![No server](https://img.shields.io/badge/server-none-e8ff47?style=flat-square&labelColor=111111)
-![React](https://img.shields.io/badge/React-18-61dafb?style=flat-square&labelColor=111111)
-![Vite](https://img.shields.io/badge/Vite-latest-646cff?style=flat-square&labelColor=111111)
+![100% client-side](https://img.shields.io/badge/processing-100%25%20client--side-e8ff47?style=flat-circle&labelColor=111111)
+![No server](https://img.shields.io/badge/server-none-e8ff47?style=flat-circle&labelColor=111111)
+![React](https://img.shields.io/badge/React-18-61dafb?style=flat-circle&labelColor=111111)
+![Vite](https://img.shields.io/badge/Vite-latest-646cff?style=flat-circle&labelColor=111111)
 
->[Vist PDF4YOU](https://pdf-4-you.vercel.app)
+##### [Vist PDF4YOU](https://pdf4you.vercel.app/)
 
 ---
 
@@ -123,18 +123,6 @@ Requires a modern browser with support for:
 - [MediaDevices API](https://caniuse.com/stream) *(Scan to PDF only — requires HTTPS)*
 
 Tested on Chrome, Firefox, Edge, and Safari (latest versions).
-
----
-
-## Contributing
-
-Contributions are welcome! Please open an issue before submitting a pull request for significant changes.
-
-1. Fork the repository
-2. Create a feature branch: `git checkout -b feature/your-feature` or `git checkout -b ui/your-ui-enhancements`
-3. Commit your changes: `git commit -m 'add your feature'`
-4. Push to the branch: `git push origin feature/your-feature`
-5. Open a pull request
 
 ---
 
